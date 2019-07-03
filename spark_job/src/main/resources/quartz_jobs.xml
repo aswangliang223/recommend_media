@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?>
+<job-scheduling-data
+        xmlns="http://www.quartz-scheduler.org/xml/JobSchedulingData"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.quartz-scheduler.org/xml/JobSchedulingData http://www.quartz-scheduler.org/xml/job_scheduling_data_2_0.xsd"
+        version="2.0">
+
+    <schedule>
+        <job>
+            <name>CalMediaScoreJob</name>
+            <group>spark-job</group>
+            <description>the cal of media play score</description>
+            <job-class>com.topdraw.launcher.Cal_Media_Play_Score_Launcher</job-class>
+        </job>
+        <trigger>
+            <cron>
+                <name>CalMediaScoreTrigger</name>
+                <group>spark-job-trigger</group>
+                <job-name>CalMediaScoreJob</job-name>
+                <job-group>spark-job</job-group>
+                <cron-expression>0 15 12 * * ?</cron-expression>
+            </cron>
+        </trigger>
+    </schedule>
+</job-scheduling-data>
