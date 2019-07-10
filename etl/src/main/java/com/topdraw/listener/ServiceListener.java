@@ -44,7 +44,5 @@ public class ServiceListener implements ServletContextListener {
         } catch (Exception e) {
             logger.error("start quartz error", e);
         }
-
-
     }
 }

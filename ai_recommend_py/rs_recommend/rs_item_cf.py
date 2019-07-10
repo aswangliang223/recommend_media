@@ -24,6 +24,13 @@ class ItemBasedCF():
     """
 
     def __init__(self):
+        self.prop = ReadProperties("data/app.properties")
+        self.logger = LoggingUtil("data/logs/")
+        self.host = self.prop.get("db_host")
+        self.port = int(self.prop.get("db_port"))
+        self.db = self.prop.get("db")
+        self.user = self.prop.get("user_name")
+        self.password = self.prop.get("password")
         self.trainset = {}
         self.testset = {}
 
@@ -38,8 +45,8 @@ class ItemBasedCF():
         self.rec_media_dict = {}
         self.all_rec_medias = {}
 
-        LoggingUtil.log().info('Similar media number = %d' % self.n_sim_media)
-        LoggingUtil.log().info('Recommended media number = %d' % self.n_rec_media)
+        self.logger.log().info('Similar media number = %d' % self.n_sim_media)
+        self.logger.log().info('Recommended media number = %d' % self.n_rec_media)
 
     @staticmethod
     def loadfile(filename):
@@ -56,7 +63,6 @@ class ItemBasedCF():
             # if i > 0 and i % 100000 == 0:
             #     print('loading %s(%s)' % (filename, i), file=sys.stderr)
         fp.close()
-        LoggingUtil.log().info('load %s success' % filename)
 
     def generate_dataset(self, filename, pivot=0.7):
         """loadfile(加载文件，将数据集按照7:3 进行随机拆分)
@@ -69,29 +75,29 @@ class ItemBasedCF():
 
         for line in self.loadfile(filename):
             # user, media, rating, _ = line.split('\t')
-            user, code, media, rating, count, percentage_count = line.split('\t')
+            user, media, rating, count, percentage_count = line.split('\t')
             # 通过pivot和随机函数比较，然后初始化用户和对应的值
             if random.random() < pivot:
                 # dict.setdefault(key, default=None)
                 # key -- 查找的键值
                 # default -- 键不存在时，设置的默认键值
                 self.trainset.setdefault(user, {})
-                self.trainset[user][media] = str(rating + "\t" + count + "\t" + percentage_count + "\t" + code)
+                self.trainset[user][media] = str(rating + "\t" + count + "\t" + percentage_count)
                 trainset_len += 1
             else:
                 self.testset.setdefault(user, {})
-                self.testset[user][media] = str(rating + "\t" + count + "\t" + percentage_count + "\t" + code)
+                self.testset[user][media] = str(rating + "\t" + count + "\t" + percentage_count)
                 testset_len += 1
-        LoggingUtil.log().info('分离训练集和测试集成功')
-        LoggingUtil.log().info('train set = %s' % trainset_len)
-        LoggingUtil.log().info('test set = %s' % testset_len)
+        self.logger.log().info('分离训练集和测试集成功')
+        self.logger.log().info('train set = %s' % trainset_len)
+        self.logger.log().info('test set = %s' % testset_len)
 
     def calc_movie_sim(self):
         """
         calc_movie_sim(计算用户之间的相似度)
         :return: item_sim_mat
         """
-        LoggingUtil.log().info('counting medias number and popularity...')
+        self.logger.log().info('counting medias number and popularity...')
         # 统计在所有的用户中`，不同歌曲的总播放次数， user, medias
         for _, medias in self.trainset.items():
             for media in medias:
@@ -100,15 +106,15 @@ class ItemBasedCF():
                     self.media_popular[media] = 0
                 self.media_popular[media] += 1
 
-        LoggingUtil.log().info('count medias number and popularity success')
+        self.logger.log().info('count medias number and popularity success')
 
         # total numbers of media
         self.media_count = len(self.media_popular)
-        LoggingUtil.log().info('total media number = %d' % self.media_count)
+        self.logger.log().info('total media number = %d' % self.media_count)
 
         # 统计在相同用户时，不同歌曲同时出现的次数
         item_sim_mat = self.media_sim_mat
-        LoggingUtil.log().info('building co-rated users matrix...')
+        self.logger.log().info('building co-rated users matrix...')
         # user, medias
         for _, medias in self.trainset.items():
             for m1 in medias:
@@ -118,10 +124,10 @@ class ItemBasedCF():
                     item_sim_mat.setdefault(m1, {})
                     item_sim_mat[m1].setdefault(m2, 0)
                     item_sim_mat[m1][m2] += 1
-        LoggingUtil.log().info('build co-rated users matrix success')
+        self.logger.log().info('build co-rated users matrix success')
 
         # calculate similarity matrix
-        LoggingUtil.log().info('calculating media similarity matrix...')
+        self.logger.log().info('calculating media similarity matrix...')
         simfactor_count = 0
         for m1, related_movies in item_sim_mat.items():
             for m2, count in related_movies.items():
@@ -129,8 +135,8 @@ class ItemBasedCF():
                 item_sim_mat[m1][m2] = count / math.sqrt(
                     self.media_popular[m1] * self.media_popular[m2])
                 simfactor_count += 1
-        LoggingUtil.log().info('calculate media similarity matrix(similarity factor) success')
-        LoggingUtil.log().info('Total similarity factor number = %d' % simfactor_count)
+        self.logger.log().info('calculate media similarity matrix(similarity factor) success')
+        self.logger.log().info('Total similarity factor number = %d' % simfactor_count)
 
     def recommend(self, user):
         """recommend(找出top K的歌曲，对歌曲进行相似度sum的排序，取出top N的歌曲)
@@ -154,8 +160,8 @@ class ItemBasedCF():
                         reverse=True):
                     if related_media in listened_media:
                         continue
-                    rank.setdefault(related_media + "\t" + str(rating).split("\t")[3], 0)
-                    rank[related_media + "\t" + str(rating).split("\t")[3]] += w * float(str(rating).split("\t")[0])
+                    rank.setdefault(related_media, 0)
+                    rank[related_media] += w * float(str(rating).split("\t")[0])
         # return the N best medias
         return sorted(rank.items(), key=itemgetter(1), reverse=True)
 
@@ -164,7 +170,7 @@ class ItemBasedCF():
         :param self:
         :return: precision, recall, coverage and popularity
         """
-        LoggingUtil.log().info('Evaluation start...')
+        self.logger.log().info('Evaluation start...')
 
         # 返回top N的推荐结果
         N = self.n_rec_media
@@ -181,7 +187,7 @@ class ItemBasedCF():
         # 参考地址：http://blog.csdn.net/churximi/article/details/51648388
         for i, user in enumerate(self.trainset):
             if i > 0 and i % 500 == 0:
-                LoggingUtil.log().info('recommended for %d users' % i)
+                self.logger.log().info('recommended for %d users' % i)
             test_medias = self.testset.get(user, {})
             rec_medias = self.recommend(user)
 
@@ -201,7 +207,7 @@ class ItemBasedCF():
         coverage = len(self.all_rec_medias) / (1.0 * self.media_count)  # 推荐结果覆盖所有歌曲的覆盖率
         popularity = popular_sum / (1.0 * rec_count)  # 这个参数越大说明数据关联性越强
 
-        LoggingUtil.log().info('precision=%.4f \t recall=%.4f \t coverage=%.4f \t popularity=%.4f' % (
+        self.logger.log().info('precision=%.4f \t recall=%.4f \t coverage=%.4f \t popularity=%.4f' % (
             precision, recall, coverage, popularity))
 
     def insert_to_mysql(self):
@@ -209,52 +215,61 @@ class ItemBasedCF():
         将based-item 的用户推荐结果插入数据库
         :return:
         """
+        conn = None
+        cur = None
         try:
-            LoggingUtil.log().info("connect to mysql start ....")
-            conn = pymysql.connect(host='139.196.4.234', port=3308, db="ai_recommend", user="root",
-                                   password="Topdraw1qaz",
+            self.logger.log().info("connect to mysql start ....")
+            conn = pymysql.connect(host=self.host, port=self.port, db=self.db, user=self.user,
+                                   password=self.password,
                                    charset='utf8')
-            LoggingUtil.log().info("connect to mysql success !!!")
-        except Exception as e:
-            LoggingUtil.log().error("connect to mysql error:%s" % e)
-        cur = conn.cursor()  # 获取游标
-        cur.execute('truncate  cf_item_recommend')
-        LoggingUtil.log().info("truncate table:cf_item_recommend success !!!")
-        try:
+            self.logger.log().info("connect to mysql success !!!")
+
+            cur = conn.cursor()  # 获取游标
+            cur.execute('truncate  x_cf_item_recommend')
+            self.logger.log().info("truncate table:x_cf_item_recommend success !!!")
+
             count = 0
-            sql = "insert into cf_item_recommend(user_id,media_id,media_code,score,create_time,update_time) values "
+            sql = "insert into x_cf_item_recommend(user_id,media_id,score,create_time,update_time) values "
             temp_sql = ""
-            per_time = datetime.datetime.now()
+            total_count = 0
+            for user in self.all_rec_medias:
+                media_score = self.all_rec_medias[user]
+                if len(media_score) >= 5:
+                    total_count += 5
+                else:
+                    total_count += len(media_score)
+            count_index = 0
             for i, user in enumerate(self.all_rec_medias):
-                # getLogger().info("insert  for %d users" % i)
                 media_score = self.all_rec_medias[user]
                 for j, media in enumerate(media_score):
-                    if j <= 5:
+                    if j < 5:
                         score = media_score[media]
-                        temp_sql = "(\'%s\',\'%s\',\'%s\',%f,str_to_date(\'%s\','%%Y-%%m-%%d %%H:%%i:%%s'),str_to_date(\'%s\','%%Y-%%m-%%d %%H:%%i:%%s'))" % (
-                            str(user), str(media).split("\t")[0], str(media).split("\t")[1], float(score),
+                        temp_sql = "(\'%s\',\'%s\',%f,str_to_date(\'%s\','%%Y-%%m-%%d %%H:%%i:%%s'),str_to_date(\'%s\','%%Y-%%m-%%d %%H:%%i:%%s'))" % (
+                            str(user), str(media).split("\t")[0], float(score),
                             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ","
                         sql += temp_sql
-                        count += 1
-                        if count > 2000:
+                        count_index += 1
+                        if (count_index % 2000 == 0) & (count_index != total_count):
                             conn.ping(reconnect=True)
-                            count = 0
                             cur.execute(sql.rstrip(","))
                             conn.commit()
-                            sql = "insert into cf_item_recommend(user_id,media_id,media_code,score,create_time,update_time) values "
+                            sql = "insert into x_cf_item_recommend(user_id,media_id,score,create_time,update_time) values "
                             temp_sql = ""
-                            LoggingUtil.log().info("insert to mysql success !!!")
+                            self.logger.log().info("insert to mysql part-%s success !!!" % (int(count_index / 2000)))
                             continue
+                        if count_index == total_count:
+                            conn.ping(reconnect=True)
+                            cur.execute(sql.rstrip(","))
+                            conn.commit()
                     else:
                         break
         except Exception as e:
-            LoggingUtil.log().error("insert error %s" % e)
+            self.logger.log().error("insert error %s" % e)
         finally:
-            LoggingUtil.log().info("close streaming...")
-            LoggingUtil.log().info(datetime.datetime.now() - per_time)
             conn.close()
             cur.close()
+            self.logger.log().info("close streaming...")
 
 
 if __name__ == '__main__':

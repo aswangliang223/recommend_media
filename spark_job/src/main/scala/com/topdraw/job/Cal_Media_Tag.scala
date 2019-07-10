@@ -29,7 +29,7 @@ object Cal_Media_Tag {
 
 
   def main(args: Array[String]): Unit = {
-    val conf = new SparkConf().setAppName("Cal_Media_Tag").setMaster("yarn").set("fs.default", "hdfs://ns1")
+    val conf = new SparkConf().setAppName("Cal_Media_Tag").setMaster("local[2]").set("fs.default", "hdfs://ns1")
     val sc = new SparkContext(conf)
     try {
       var date = new Date()
@@ -77,6 +77,7 @@ object Cal_Media_Tag {
           map(record => {
             record._1 + "\t" + record._2
           }).distinct().repartition(1).sortBy(record => record.split("\t")(0))
+        userMediaTagRdd.foreach(println)
         var index1 = 0
         val mediaIdRdd = userMediaTagRdd.map(record => {
           record.split("\t")(0)
@@ -101,7 +102,7 @@ object Cal_Media_Tag {
             }
           }
         }
-        val com_artsistRdd = sc.parallelize(arr).filter(record => {
+        val com_artistRdd = sc.parallelize(arr).filter(record => {
           //过滤掉 lenth 不等于 2 的数据
           record.split("\t").length == 2
         })
@@ -109,7 +110,7 @@ object Cal_Media_Tag {
             record.split("\t")(1)
           })
         val tagArray = new ArrayBuffer[String]()
-        for (value <- com_artsistRdd.collect()) {
+        for (value <- com_artistRdd.collect()) {
           val array = value.split("、")
           // 这里得到 分割的所有标签
           for (arr <- array) {
@@ -124,8 +125,8 @@ object Cal_Media_Tag {
           }).repartition(1)
         CommonUtil.saveFileASText(mediaId_common_artist_tag_path + datePath, userMediaTagRdd)
         CommonUtil.saveFileASText(common_artist_tag_index_path_out + datePath, tagIndexRdd)
-        CommonUtil.saveFileASText(mediaId_index_path+datePath,mediaIdRdd)
-      }
+        CommonUtil.saveFileASText(mediaId_index_path + datePath, mediaIdRdd)
+    }
       else {
         logger.error("file does not exists")
       }

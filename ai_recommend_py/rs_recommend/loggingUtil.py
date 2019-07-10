@@ -6,7 +6,7 @@ import time
 
 
 class LoggingUtil:
-    def __init__(self, log_path):
+    def __init__(self,log_path):
         self.log_path = log_path
 
     def log(self):
@@ -18,15 +18,17 @@ class LoggingUtil:
         log_path = self.log_path
         log_name = log_path + rq + '.log'
         logfile = log_name
-        fh = logging.FileHandler(logfile, mode='w')
+        fh = logging.FileHandler(logfile, mode='a')
         fh.setLevel(logging.ERROR)  # 输出到file的log等级的开关
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)  # 输出到console的log等级的开关
         # 第三步，定义handler的输出格式
-        formatter = logging.Formatter("%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s")
+        formatter = logging.Formatter(
+            '[%(asctime)s] %(filename)s->%(funcName)s line:%(lineno)d [%(levelname)s]%(message)s')
         fh.setFormatter(formatter)
         ch.setFormatter(formatter)
         # 第四步，将logger添加到handler里面
         logger.addHandler(fh)
         logger.addHandler(ch)
+        # 添加下面一句，在记录日志之后移除句柄
         return logger

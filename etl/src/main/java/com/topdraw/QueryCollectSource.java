@@ -53,10 +53,9 @@ public class QueryCollectSource implements Job {
                 String content = "{\"userId\":\"" + userId + "\",\"mediaId\":\"" + mediaId + "\"}";
                 bwWriter.write(content);
                 bwWriter.newLine();
-
             }
         } catch (Exception e) {
-            logger.error("QueryMediaMessage exception");
+            logger.error("QueryCollectSource exception");
             e.printStackTrace();
         } finally {
             try {
@@ -69,7 +68,49 @@ public class QueryCollectSource implements Job {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                logger.error("QueryMediaMessage stream close exception");
+                logger.error("QueryCollectSource stream close exception");
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        //配置HDFS
+        Configuration configuration = new Configuration();
+        configuration.set("fs.defaultFS", "hdfs://ns1");
+        FSDataOutputStream fsDataOutputStream = null;
+        BufferedWriter bwWriter = null;
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        try {
+            FileSystem fs = FileSystem.get(configuration);
+            fsDataOutputStream = fs.create(new Path(outputPath));
+            bwWriter = new BufferedWriter(new OutputStreamWriter(fsDataOutputStream));
+            connection = DruidDataSourceUt.getConnection();
+            preparedStatement = connection.prepareStatement(sql);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                String userId = "" + resultSet.getString("userId") + "";
+                String mediaId = "" + resultSet.getString("mediaId") + "";
+                String content = "{\"userId\":\"" + userId + "\",\"mediaId\":\"" + mediaId + "\"}";
+                bwWriter.write(content);
+                bwWriter.newLine();
+            }
+        } catch (Exception e) {
+            logger.error("QueryCollectSource exception");
+            e.printStackTrace();
+        } finally {
+            try {
+                if (bwWriter != null) {
+                    bwWriter.close();
+                }
+                DruidDataSourceUt.closeResource(resultSet, preparedStatement, connection);
+                if (fsDataOutputStream != null) {
+                    fsDataOutputStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                logger.error("QueryCollectSource stream close exception");
             }
         }
     }

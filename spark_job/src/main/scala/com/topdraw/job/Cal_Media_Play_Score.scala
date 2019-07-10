@@ -23,7 +23,6 @@ object Cal_Media_Play_Score {
     val outputPath = AppConfiguration.get("media_play_score_path")
     val conf = new SparkConf().setAppName("Cal_Media_Play_Score").setMaster("yarn").set("fs.default", "hdfs://ns1")
     val sc = new SparkContext(conf)
-
     try {
       var date = new Date()
       val cal = Calendar.getInstance()
@@ -50,9 +49,10 @@ object Cal_Media_Play_Score {
             record.get("duration") != 0 &&
             record.get("mediaId") != null &&
             record.get("userId") != null &&
+            record.get("mediaId") != -1 &&
             record.containsKey("actionTime")
         }).map(record => {
-          ((record.get("userId"),  record.get("mediaId")), record)
+          ((record.get("userId"), record.get("mediaId")), record)
         }).groupByKey()
         //计算每一个用户对每一个media 的有效观看时长 ((userId,mediaId),record)
         // 加入 播放衰减系数（播放次数）
@@ -102,7 +102,7 @@ object Cal_Media_Play_Score {
                 location = "E"
               }
             } else if ("E".equals(location)) {
-              if ("MediaSeek".equals(location)) {
+              if ("MediaSeek".equals(action)) {
                 ePosition = arr.get("startTime").toString.toInt
                 if (sPosition != 0 && ePosition != 0 && ePosition > sPosition) {
                   val tempEffectiveTime = ePosition - sPosition
@@ -117,7 +117,7 @@ object Cal_Media_Play_Score {
                 }
               } else if ("MediaPause".equals(action) || "MediaStop".equals(action)) {
                 ePosition = arr.get("position").toString.toInt
-                if (sPosition != 0 && ePosition != 0 && ePosition > sPosition) {
+                if (ePosition > sPosition) {
                   val tempEffectiveTime = ePosition - sPosition
                   effectiveTime += tempEffectiveTime
                   duration = arr.get("duration").toString.toInt
@@ -173,5 +173,4 @@ object Cal_Media_Play_Score {
     }
     res
   }
-
 }

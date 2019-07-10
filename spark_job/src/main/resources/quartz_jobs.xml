@@ -15,10 +15,70 @@
         <trigger>
             <cron>
                 <name>CalMediaScoreTrigger</name>
-                <group>spark-job-trigger</group>
+                <group>spark-job</group>
                 <job-name>CalMediaScoreJob</job-name>
                 <job-group>spark-job</job-group>
-                <cron-expression>0 15 12 * * ?</cron-expression>
+                <cron-expression>0 20 1 * * ?</cron-expression>
+            </cron>
+        </trigger>
+        <job>
+            <name>CalMediaCollectNowJob</name>
+            <group>spark-job</group>
+            <description>the cal of media play score</description>
+            <job-class>com.topdraw.launcher.Cal_Media_His_Now_Collection_Launcher</job-class>
+        </job>
+        <trigger>
+            <cron>
+                <name>CalMediaCollectNowTrigger</name>
+                <group>spark-job</group>
+                <job-name>CalMediaCollectNowJob</job-name>
+                <job-group>spark-job</job-group>
+                <cron-expression>0 30 1 * * ?</cron-expression>
+            </cron>
+        </trigger>
+        <job>
+            <name>CalMediaTagJob</name>
+            <group>spark-job</group>
+            <description>the cal of media tag</description>
+            <job-class>com.topdraw.launcher.Cal_Media_Tag_Launcher</job-class>
+        </job>
+        <trigger>
+            <cron>
+                <name>CalMediaTagTrigger</name>
+                <group>spark-job</group>
+                <job-name>CalMediaTagJob</job-name>
+                <job-group>spark-job</job-group>
+                <cron-expression>0 25 1 * * ?</cron-expression>
+            </cron>
+        </trigger>
+        <job>
+            <name>CalUserTagScoreJob</name>
+            <group>spark-job</group>
+            <description>the cal of user tag score</description>
+            <job-class>com.topdraw.launcher.Cal_User_Tag_Score</job-class>
+        </job>
+        <trigger>
+            <cron>
+                <name>CalUserTagScoreTrigger</name>
+                <group>spark-job</group>
+                <job-name>CalUserTagScoreJob</job-name>
+                <job-group>spark-job</job-group>
+                <cron-expression>0 35 1 * * ?</cron-expression>
+            </cron>
+        </trigger>
+        <job>
+            <name>CalUserTagScoreListSubjectJob</name>
+            <group>spark-job</group>
+            <description>the cal of user tag score fo list and subject</description>
+            <job-class>com.topdraw.launcher.Cal_User_Tag_Score_List_Subject_Launcher</job-class>
+        </job>
+        <trigger>
+            <cron>
+                <name>CalUserTagScoreListSubjectTrigger</name>
+                <group>spark-job</group>
+                <job-name>CalUserTagScoreListSubjectJob</job-name>
+                <job-group>spark-job</job-group>
+                <cron-expression>0 40 1 * * ?</cron-expression>
             </cron>
         </trigger>
     </schedule>

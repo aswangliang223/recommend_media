@@ -40,7 +40,7 @@ public class Cal_User_Tag_Score implements Job {
                     .setDeployMode("cluster")
                     .setConf("spark.driver.memory", "2g")
                     .setConf("spark.akka.frameSize", "200")
-                    .setConf("spark.executor.memory", "16g")
+                    .setConf("spark.executor.memory", "1g")
                     .setConf("spark.executor.instances", "32")
                     .setConf("spark.executor.cores", "3")
                     .setConf("spark.default.parallelism", "10")

@@ -10,7 +10,7 @@ from rs_recommend.readProperties import ReadProperties
 class Similarity_Matrix:
 
     def __init__(self):
-        pass
+        self.logger = LoggingUtil("data/logs/")
 
     def similarity_func(self, A, B):
         """
@@ -83,10 +83,11 @@ class Similarity_Matrix:
         if self.isExists(file):
             f = open(file, encoding="utf-8")
             for line in f.readlines():
-                row = line.split("\t")
-                media = row[0]
-                tag = row[1].rstrip("\n")
-                array[file.index(media)][column.index(tag)] = 1.0
+                arr = line.split("\t")
+                media = arr[0]
+                tag = arr[1].rstrip("\n")
+                if tag in column:
+                    array[row.index(media)][column.index(tag)] = 1.0
         return array
 
     def cal_similarity_func(self, row_file, column_file, row_coloum_relation_file, cluster_centers, mat_out_file):
@@ -96,16 +97,16 @@ class Similarity_Matrix:
         """
         row_index = []
         column_index = []
-        LoggingUtil.log().info("read row_index_file start...")
+        self.logger.log().info("read row_index_file start...")
         row_index = self.file_read_fun(row_file, row_index)
-        LoggingUtil.log().info("read row_index_file finished!!!")
-        LoggingUtil.log().info("read column_index_file start...")
+        self.logger.log().info("read row_index_file finished!!!")
+        self.logger.log().info("read column_index_file start...")
         column_index = self.file_read_fun(column_file, column_index)
-        LoggingUtil.log().info("read column_index_file finished!!!")
+        self.logger.log().info("read column_index_file finished!!!")
         array = self.generate_relation_mat(row_index, column_index, row_coloum_relation_file)
-        LoggingUtil.log().info("calculate similarity matrix start...")
+        self.logger.log().info("calculate similarity matrix start...")
         similarity_matrix_media = self.cluster_media_list_fun(cluster_centers, array)
-        LoggingUtil.log().info("calculate similarity matrix finished !!!")
+        self.logger.log().info("calculate similarity matrix finished !!!")
         np.savetxt(mat_out_file, similarity_matrix_media)
         return similarity_matrix_media
 
@@ -113,20 +114,20 @@ class Similarity_Matrix:
 if __name__ == '__main__':
     sim_mat = Similarity_Matrix()
     prop = ReadProperties("data/app.properties")
-    # 单曲相似度计算
-    sim_mat.cal_similarity_func(row_file=prop.get("mediaId_index_path"),
+    # 单曲相似度计算(应该是全部歌曲) #todo：
+    sim_mat.cal_similarity_func(row_file=prop.get("all_mediaId_index_path"),
                                 column_file=prop.get("common_artist_tag_index_path"),
                                 row_coloum_relation_file=prop.get("mediaId_tag_path"),
-                                cluster_centers=np.load(prop.get("media_ap_centers")),
+                                cluster_centers=np.load(prop.get("media_ap_centers") + ".npy"),
                                 mat_out_file=prop.get("media_similarity_matrix"))
     # 歌单相似度计算
     sim_mat.cal_similarity_func(row_file=prop.get("mediaList_index_path"), column_file=prop.get("commonTag_index_path"),
                                 row_coloum_relation_file=prop.get("mediaList_tag_path"),
-                                cluster_centers=np.load(prop.get("media_list_ap_centers")),
+                                cluster_centers=np.load(prop.get("media_list_ap_centers") + ".npy"),
                                 mat_out_file=prop.get("media_list_similarity_matrix"))
 
     # 专题相似度计算
     sim_mat.cal_similarity_func(row_file=prop.get("subject_index_path"), column_file=prop.get("commonTag_index_path"),
                                 row_coloum_relation_file=prop.get("subject_tag_path"),
-                                cluster_centers=np.load(prop.get("media_list_ap_centers")),
+                                cluster_centers=np.load(prop.get("media_list_ap_centers") + ".npy"),
                                 mat_out_file=prop.get("media_subject_similarity_matrix"))

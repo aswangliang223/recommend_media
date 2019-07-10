@@ -14,6 +14,7 @@ class UserLabelAP:
         self.media_ap_centers = media_ap_centers
         self.mediaList_ap_centers = mediaList_ap_centers
         self.mediaList_ap_labels = mediaList_ap_labels
+        self.logger = LoggingUtil("data/logs/")
 
     def isExists(self, fileName):
         """
@@ -37,7 +38,7 @@ class UserLabelAP:
                 data.append(row[1].rstrip("\n"))
             f.close()
         else:
-            LoggingUtil.log().error("%s is not exists" % fileName)
+            self.logger.log().error("%s is not exists" % fileName)
         return data
 
     def user_tag_matrix_fun(self, userId_list, tag_list, user_tag_fileName):
@@ -48,7 +49,7 @@ class UserLabelAP:
         :param user_tag_fileName:
         :return: 用户标签矩阵
         """
-        LoggingUtil.log().info("user tag matrix building...")
+        self.logger.log().info("user tag matrix building...")
         len_row = len(userId_list)
         len_coloum = len(tag_list)
         array = np.zeros((len_row, len_coloum))
@@ -59,8 +60,9 @@ class UserLabelAP:
                 userId = row[0].strip()
                 tag = row[1].strip()
                 score = row[2].rstrip("\n")
-                array[userId_list.index(userId)][tag_list.index(tag)] = score
-        LoggingUtil.log().info("user tag matrix finished!!!")
+                if tag in tag_list:
+                    array[userId_list.index(userId)][tag_list.index(tag)] = score
+        self.logger.log().info("user tag matrix finished!!!")
         return array
 
     def affinityPropagation(self, data, ap_damping, ap_max_iter, ap_convergence_iter, ap_copy, ap_preference,
@@ -74,7 +76,7 @@ class UserLabelAP:
         :return: cluster_centers_,labels_
         """
         tim_pre = time.time()
-        LoggingUtil.log().info(tim_pre)
+        self.logger.log().info(tim_pre)
         """
         damping : 衰减系数，默认为 0.5
         convergence_iter : 迭代次后聚类中心没有变化，算法结束，默认为15.
@@ -93,7 +95,7 @@ class UserLabelAP:
             data)  # damping must be >= 0.5 and < 1,默认0.5
         tim_now = time.time()
         duration = tim_now - tim_pre
-        LoggingUtil.log().info(duration)
+        self.logger.log().info(duration)
         cluster_centers_ = af.cluster_centers_
         labels_ = af.labels_
         cluster_centers_indices = af.cluster_centers_indices_
@@ -114,8 +116,7 @@ class UserLabelAP:
                                                                                       ap_convergence_iter=int(prop.get(
                                                                                           "ap_convergence_iter")),
                                                                                       ap_copy=True,
-                                                                                      ap_preference=prop.get(
-                                                                                          "ap_preference"),
+                                                                                      ap_preference=None,
                                                                                       ap_affinity=prop.get(
                                                                                           "ap_affinity"),
                                                                                       ap_verbose=False)
@@ -142,6 +143,7 @@ class UserLabelAP:
         array = self.user_tag_matrix_fun(user_list, tag_list, user_tag_file1)
         # 单曲推荐的聚类中心
         cluster_centers_, labels_, cluster_centers_indices = self.AP_algrothm(array)
+        self.logger.log().info("ap cluster centers nums %s" % cluster_centers_.shape[0])
         np.save(self.media_ap_centers, cluster_centers_)
         np.save(self.media_ap_labels, labels_)
         return cluster_centers_, labels_, cluster_centers_indices
@@ -164,35 +166,35 @@ class UserLabelAP:
         tag_common_list = self.file_read_fun(tag_common_file, tag_common_list)
         array = self.user_tag_matrix_fun(user_list, tag_common_list, user_common_tag_file)
         # 歌单聚类中心
-        LoggingUtil.log().info("song_list ap start...")
+        self.logger.log().info("song_list ap start...")
         cluster_centers_, labels_, cluster_centers_indices = self.AP_algrothm(array)
-        LoggingUtil.log().info("song_list ap finished!!!")
-        LoggingUtil.log().info("ap cluster centers nums: %s " % cluster_centers_.shape[0])
-        LoggingUtil.log().info("ap finished!!!")
+        self.logger.log().info("song_list ap finished!!!")
+        self.logger.log().info("ap cluster centers nums: %s " % cluster_centers_.shape[0])
+        self.logger.log().info("ap finished!!!")
         np.save(self.mediaList_ap_centers, cluster_centers_)
         np.save(self.mediaList_ap_labels, labels_)
 
-        """
-        绘制散点图观察聚类效果
-        """
-        import matplotlib.pyplot as plt
-        from itertools import cycle
-        plt.figure('AP')
-        plt.subplots(facecolor=(0.5, 0.5, 0.5))
-        colors = cycle('rgbcmykw')
-        for k, col in zip(range(cluster_centers_.shape[0]), colors):
-            # labels == k 使用k与labels数组中的每个值进行比较
-            # 如labels = [1,0],k=0,则‘labels==k’的结果为[False, True]
-            class_members = labels_ == k
-            cluster_center = array[cluster_centers_indices[k]]  # 聚类中心的坐标
-            plt.plot(array[class_members, 0], array[class_members, 1], col + '.')
-            plt.plot(cluster_center[0], cluster_center[1], markerfacecolor=col,
-                     markeredgecolor='k', markersize=14)
-            for x in array[class_members]:
-                plt.plot([cluster_center[0], x[0]], [cluster_center[1], x[1]], col)
-        plt.xticks(fontsize=10, color="darkorange")
-        plt.yticks(fontsize=10, color="darkorange")
-        plt.show()
+        # """
+        # 绘制散点图观察聚类效果
+        # """
+        # import matplotlib.pyplot as plt
+        # from itertools import cycle
+        # plt.figure('AP')
+        # plt.subplots(facecolor=(0.5, 0.5, 0.5))
+        # colors = cycle('rgbcmykw')
+        # for k, col in zip(range(cluster_centers_.shape[0]), colors):
+        #     # labels == k 使用k与labels数组中的每个值进行比较
+        #     # 如labels = [1,0],k=0,则‘labels==k’的结果为[False, True]
+        #     class_members = labels_ == k
+        #     cluster_center = array[cluster_centers_indices[k]]  # 聚类中心的坐标
+        #     plt.plot(array[class_members, 0], array[class_members, 1], col + '.')
+        #     plt.plot(cluster_center[0], cluster_center[1], markerfacecolor=col,
+        #              markeredgecolor='k', markersize=14)
+        #     for x in array[class_members]:
+        #         plt.plot([cluster_center[0], x[0]], [cluster_center[1], x[1]], col)
+        # plt.xticks(fontsize=10, color="darkorange")
+        # plt.yticks(fontsize=10, color="darkorange")
+        # plt.show()
         return cluster_centers_, cluster_centers_indices, labels_
 
 

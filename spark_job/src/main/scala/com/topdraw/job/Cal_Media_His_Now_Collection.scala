@@ -24,8 +24,7 @@ object Cal_Media_His_Now_Collection {
     * userId:1,"appId:""test001""","version:""2.3.2-beta""",media:8839}
     */
   def main(args: Array[String]): Unit = {
-    val conf = new SparkConf().setAppName("Cal_Media_His_Now_Collection").setMaster("yarn")
-    conf.set("fs.default", "hdfs://ns1")
+    val conf = new SparkConf().setAppName("Cal_Media_His_Now_Collection").setMaster("yarn").set("fs.default", "hdfs://ns1")
     val sc = new SparkContext(conf)
     try {
       var date: Date = new Date()

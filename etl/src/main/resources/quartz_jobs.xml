@@ -15,10 +15,10 @@
         <trigger>
             <cron>
                 <name>QueryMediaSourceTrigger</name>
-                <group>etl-tigger</group>
+                <group>etl</group>
                 <job-name>QueryMediaSourceJob</job-name>
                 <job-group>etl</job-group>
-                <cron-expression>0 10 18 * * ?</cron-expression>
+                <cron-expression>0 50 15 * * ?</cron-expression>
             </cron>
         </trigger>
         <job>
@@ -30,10 +30,10 @@
         <trigger>
             <cron>
                 <name>QueryCollectSourceTrigger</name>
-                <group>etl-tigger</group>
+                <group>etl</group>
                 <job-name>QueryCollectSourceJob</job-name>
                 <job-group>etl</job-group>
-                <cron-expression>0 20 18 * * ?</cron-expression>
+                <cron-expression>0 55 15 * * ?</cron-expression>
             </cron>
         </trigger>
     </schedule>
