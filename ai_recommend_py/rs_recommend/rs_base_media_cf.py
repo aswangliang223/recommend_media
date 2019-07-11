@@ -73,6 +73,7 @@ class ItemBaseMediaCF:
         len_row = array.shape[0]
         len_column = array.shape[0]
         similarity_mat = np.zeros((len_row, len_column))
+        self.logger.log().info("cal similarity_mat start...")
         for i in range(len_row):
             for j in range(len_column):
                 if i == j:
@@ -80,6 +81,8 @@ class ItemBaseMediaCF:
                 else:
                     score = math.fabs(sim_mat.similarity_func(array[i], array[j]))
                     similarity_mat[i][j] = score
+            self.logger.log().info("cal part_%s" % (i + 1))
+        self.logger.log().info("cal similarity_mat finished!!!")
         return similarity_mat
 
     def main(self):

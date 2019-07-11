@@ -5,7 +5,6 @@ import numpy as np
 import datetime
 import pymysql
 import os
-
 from rs_recommend.loggingUtil import LoggingUtil
 from rs_recommend.readProperties import ReadProperties
 
@@ -202,8 +201,8 @@ class ConnectToMysql:
         similiarity_mat_file = self.prop.get("media_similarity_matrix")
         media_mat_file = self.prop.get("all_mediaId_index_path")
         insert_mat_media_sql = "insert into x_user_center__rank(user_center_id,media_id,score,create_time,update_time) values "
-        # self.saveUserCenterToMysql(truncate_sql=truncate_media, user_id_list_file=user_id_list_file,
-        #                            user_labels_file=user_media_labels_file, insert_sql=insert_media_sql)
+        self.saveUserCenterToMysql(truncate_sql=truncate_media, user_id_list_file=user_id_list_file,
+                                   user_labels_file=user_media_labels_file, insert_sql=insert_media_sql)
         self.saveSimilarityMatrixToMysql(truncate_sql=truncate_mat_media, similiarity_mat=similiarity_mat_file,
                                          media_file=media_mat_file, insert_sql=insert_mat_media_sql)
 

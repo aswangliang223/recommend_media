@@ -29,7 +29,7 @@ object Cal_User_Tag_Score_List_Subject {
   val outputPath7 = AppConfiguration.get("user_now_play_index_path")
 
   def main(args: Array[String]): Unit = {
-    val conf = new SparkConf().setAppName("Cal_User_Tag_Score_List_Subject").setMaster("yarn").set("fs.default", "hdfs://ns1")
+    val conf = new SparkConf().setAppName("Cal_User_Tag_Score_List_Subject").setMaster("local[2]").set("fs.default", "hdfs://ns1")
     val sc = new SparkContext(conf)
     try {
       var date = new Date()

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # coding:utf8
 """
-协同过滤的方式（基于item 的推荐 用户 歌曲 播放次数（=1））
+协同过滤的方式（基于user 的推荐 用户 歌曲 播放次数（=1））
 """
 from __future__ import print_function
 import math
@@ -244,8 +244,8 @@ class ItemBasedCF():
                 for j, media in enumerate(media_score):
                     if j < 5:
                         score = media_score[media]
-                        temp_sql = "(\'%s\',\'%s\',%f,str_to_date(\'%s\','%%Y-%%m-%%d %%H:%%i:%%s'),str_to_date(\'%s\','%%Y-%%m-%%d %%H:%%i:%%s'))" % (
-                            str(user), str(media).split("\t")[0], float(score),
+                        temp_sql = "(\'%d\',\'%s\',%f,str_to_date(\'%s\','%%Y-%%m-%%d %%H:%%i:%%s'),str_to_date(\'%s\','%%Y-%%m-%%d %%H:%%i:%%s'))" % (
+                            int(user), str(media).split("\t")[0], float(score),
                             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) + ","
                         sql += temp_sql
