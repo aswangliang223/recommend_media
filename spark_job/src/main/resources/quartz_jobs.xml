@@ -81,5 +81,20 @@
                 <cron-expression>0 40 1 * * ?</cron-expression>
             </cron>
         </trigger>
+        <job>
+            <name>CalMediaPlayScoreOfOneMonthJob</name>
+            <group>spark-job</group>
+            <description>the cal of media play score of one month</description>
+            <job-class>com.topdraw.launcher.Cla_Media_Play_One_Month_Score_Launcher</job-class>
+        </job>
+        <trigger>
+            <cron>
+                <name>CalMediaPlayScoreOfOneMonthTrigger</name>
+                <group>spark-job</group>
+                <job-name>CalMediaPlayScoreOfOneMonthJob</job-name>
+                <job-group>spark-job</job-group>
+                <cron-expression>0 50 1 * * ?</cron-expression>
+            </cron>
+        </trigger>
     </schedule>
 </job-scheduling-data>

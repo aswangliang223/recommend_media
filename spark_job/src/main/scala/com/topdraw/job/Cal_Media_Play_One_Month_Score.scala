@@ -9,16 +9,16 @@ import org.afflatus.utility.AppConfiguration
 import org.apache.spark.{SparkConf, SparkContext}
 import org.slf4j.LoggerFactory
 
-import scala.util.control.Breaks._
+import scala.util.control.Breaks.{break, breakable}
 
 /**
-  * 计算用户有效播放时长得分
+  * 统计30天的播放数据得分
   */
-object Cal_Media_Play_Score {
+object Cal_Media_Play_One_Month_Score {
 
   private val logger = LoggerFactory.getLogger(Cal_Media_Play_Score.getClass)
   private val inputPath = AppConfiguration.get("base_hdfs_path")
-  private val outputPath = AppConfiguration.get("media_play_score_path")
+  private val outputPath1 = AppConfiguration.get("media_play_score_one_month_path")
   var date = new Date()
   val cal = Calendar.getInstance()
   cal.setTime(date)
@@ -32,10 +32,10 @@ object Cal_Media_Play_Score {
   val datePath = dateFormat.format(date)
 
   def main(args: Array[String]): Unit = {
-    val conf = new SparkConf().setAppName("Cal_Media_Play_Score").setMaster("yarn").set("fs.default", "hdfs://ns1")
+    val conf = new SparkConf().setAppName("Cal_Media_Play_One_Month_Score").setMaster("yarn").set("fs.default", "hdfs://ns1")
     val sc = new SparkContext(conf)
     try {
-      val hdfsFile = CommonUtil.getFileOfDay(inputPath, new Date(), 7)
+      val hdfsFile = CommonUtil.getFileOfDay(inputPath, new Date(), 30)
       if (hdfsFile.length > 0) {
         logger.info("cal_media_play_score job Start-----------------------------------" + datePath + "-------------------------")
         val transRdd = sc.textFile(hdfsFile.mkString(",")).map(record => {
@@ -142,7 +142,7 @@ object Cal_Media_Play_Score {
           val score = calculateScore(record._3, record._4, record._5)
           (record._1 + "\t" + record._2 + "\t" + score + "\t" + record._5 + "\t" + record._6)
         })
-        CommonUtil.saveFileASText(outputPath + datePath, scoreRdd.coalesce(1,true))
+        CommonUtil.saveFileASText(outputPath1 + datePath, scoreRdd.coalesce(1,true))
       } else {
         logger.warn("cal_media_play_score job warn--------------------------------------未找到HDFS文件:" + hdfsFile)
       }
@@ -176,4 +176,5 @@ object Cal_Media_Play_Score {
     }
     res
   }
+
 }

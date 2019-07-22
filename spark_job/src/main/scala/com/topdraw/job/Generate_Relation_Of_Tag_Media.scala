@@ -8,12 +8,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.collection.mutable.ArrayBuffer
 
-/**
-  * @Author wangliang
-  * @ClassName GanSuMediaCodeTagRelation
-  * @Description 甘肃少儿未打标签的MediaCode 打上标签
-  * @Date 2019/5/30
-  **/
+
 object Generate_Relation_Of_Tag_Media {
 
   private val logger: Logger = Logger.getLogger(Generate_Relation_Of_Tag_Media.getClass)

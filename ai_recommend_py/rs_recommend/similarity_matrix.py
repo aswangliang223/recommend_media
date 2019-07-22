@@ -114,7 +114,7 @@ class Similarity_Matrix:
 if __name__ == '__main__':
     sim_mat = Similarity_Matrix()
     prop = ReadProperties("data/app.properties")
-    # 单曲相似度计算(应该是全部歌曲) #todo：
+    # 单曲相似度计算(应该是全部歌曲)
     sim_mat.cal_similarity_func(row_file=prop.get("all_mediaId_index_path"),
                                 column_file=prop.get("common_artist_tag_index_path"),
                                 row_coloum_relation_file=prop.get("mediaId_tag_path"),

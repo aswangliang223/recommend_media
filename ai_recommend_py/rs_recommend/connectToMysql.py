@@ -156,7 +156,9 @@ class ConnectToMysql:
     def insertMediaRelationMatToMysql(self, truncate_sql, similarite_mat, insert_sql):
         conn = None
         cur = None
+        self.logger.log().info("load file start...")
         media_relation_similarity_mat = np.loadtxt(similarite_mat)
+        self.logger.log().info("load file finished")
         try:
             conn = pymysql.connect(host=self.host, port=int(self.port), db=self.db, user=self.user_name,
                                    password=self.password,

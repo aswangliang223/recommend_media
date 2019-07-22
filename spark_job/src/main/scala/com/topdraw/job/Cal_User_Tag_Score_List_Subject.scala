@@ -29,7 +29,7 @@ object Cal_User_Tag_Score_List_Subject {
   val outputPath7 = AppConfiguration.get("user_now_play_index_path")
 
   def main(args: Array[String]): Unit = {
-    val conf = new SparkConf().setAppName("Cal_User_Tag_Score_List_Subject").setMaster("local[2]").set("fs.default", "hdfs://ns1")
+    val conf = new SparkConf().setAppName("Cal_User_Tag_Score_List_Subject").setMaster("yarn").set("fs.default", "hdfs://ns1")
     val sc = new SparkContext(conf)
     try {
       var date = new Date()
@@ -180,12 +180,12 @@ object Cal_User_Tag_Score_List_Subject {
           record._1._1 + "\t" + record._1._2 + "\t" + record._2.toDouble.formatted("%.3f")
         }).cache()
 
-        val index1 = 0
+        var index1 = 0
         val userNowIndexRdd = playRdd.map(record => {
           record._1.split("\t")(0)
         }).distinct().sortBy(_.toInt).repartition(1).map(record => {
-          index = index + 1
-          index + "\t" + record
+          index1 = index1 + 1
+          index1 + "\t" + record
         })
         logger.info("cal user tag score list subject success...")
         CommonUtil.saveFileASText(outputPath1 + datePath, userTagScoreRdd)

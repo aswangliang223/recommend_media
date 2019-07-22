@@ -3,7 +3,6 @@ package com.topdraw.job
 import java.text.SimpleDateFormat
 import java.util.{Calendar, Date}
 
-
 import com.topdraw.util.CommonUtil
 import org.afflatus.utility.AppConfiguration
 import org.apache.spark.{SparkConf, SparkContext}

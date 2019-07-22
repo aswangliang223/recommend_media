@@ -74,7 +74,6 @@ class ItemBasedCF():
         testset_len = 0
 
         for line in self.loadfile(filename):
-            # user, media, rating, _ = line.split('\t')
             user, media, rating, count, percentage_count = line.split('\t')
             # 通过pivot和随机函数比较，然后初始化用户和对应的值
             if random.random() < pivot:
@@ -92,13 +91,13 @@ class ItemBasedCF():
         self.logger.log().info('train set = %s' % trainset_len)
         self.logger.log().info('test set = %s' % testset_len)
 
-    def calc_movie_sim(self):
+    def calc_media_sim(self):
         """
-        calc_movie_sim(计算用户之间的相似度)
+        calc_media_sim()
         :return: item_sim_mat
         """
         self.logger.log().info('counting medias number and popularity...')
-        # 统计在所有的用户中`，不同歌曲的总播放次数， user, medias
+        # 统计在所有的用户中`，不同歌曲的总播放次数， user, medias 某首歌曲被多少人播放过，数据来源中用户播放一首歌曲的所有记录被评分在了一起
         for _, medias in self.trainset.items():
             for media in medias:
                 # count item popularity
@@ -112,7 +111,7 @@ class ItemBasedCF():
         self.media_count = len(self.media_popular)
         self.logger.log().info('total media number = %d' % self.media_count)
 
-        # 统计在相同用户时，不同歌曲同时出现的次数
+        # 统计在相同用户时，不同歌曲同时出现的次数（本意就是用户播放的每一首曲子与之相关的其他曲子的播放次数）
         item_sim_mat = self.media_sim_mat
         self.logger.log().info('building co-rated users matrix...')
         # user, medias
@@ -136,7 +135,7 @@ class ItemBasedCF():
                     self.media_popular[m1] * self.media_popular[m2])
                 simfactor_count += 1
         self.logger.log().info('calculate media similarity matrix(similarity factor) success')
-        self.logger.log().info('Total similarity factor number = %d' % simfactor_count)
+        self.logger.log().info('total similarity factor number = %d' % simfactor_count)
 
     def recommend(self, user):
         """recommend(找出top K的歌曲，对歌曲进行相似度sum的排序，取出top N的歌曲)
@@ -275,17 +274,17 @@ class ItemBasedCF():
 if __name__ == '__main__':
     # ratingfile = 'data/16.RecommenderSystems/ml-1m/ratings.dat'
     prop = ReadProperties("data/app.properties")
-    ratingfile = prop.get("media_play_score_path")
+    ratingfile = prop.get("media_play_score_one_month_path")
     # 创建ItemCF对象
     itemcf = ItemBasedCF()
     # 将数据按照 7:3的比例，拆分成：训练集和测试集，存储在usercf的trainset和testset中
     itemcf.generate_dataset(ratingfile, pivot=0.7)
     # 计算用户之间的相似度
-    itemcf.calc_movie_sim()
+    itemcf.calc_media_sim()
     # 评估推荐效果
     itemcf.evaluate()
-    itemcf.insert_to_mysql()
+    # itemcf.insert_to_mysql()
     # 查看推荐结果用户
-    # user = "359389"
-    # print("推荐结果", itemcf.recommend(user))
-    # print("---", itemcf.testset.get(user, {}))
+    user = "173955"
+    print("推荐结果", itemcf.recommend(user))
+    print("---", itemcf.testset.get(user, {}))

@@ -9,11 +9,14 @@ from rs_recommend.readProperties import ReadProperties
 
 
 class UserLabelAP:
-    def __init__(self, media_ap_centers, media_ap_labels, mediaList_ap_centers, mediaList_ap_labels):
+    def __init__(self, media_ap_centers, media_ap_labels, media_ap_indices, mediaList_ap_centers, mediaList_ap_labels,
+                 mediaList_ap_indices):
         self.media_ap_labels = media_ap_labels
         self.media_ap_centers = media_ap_centers
         self.mediaList_ap_centers = mediaList_ap_centers
         self.mediaList_ap_labels = mediaList_ap_labels
+        self.media_ap_indices = media_ap_indices
+        self.mediaList_ap_indices = mediaList_ap_indices
         self.logger = LoggingUtil("data/logs/")
 
     def isExists(self, fileName):
@@ -146,6 +149,7 @@ class UserLabelAP:
         self.logger.log().info("ap cluster centers nums %s" % cluster_centers_.shape[0])
         np.save(self.media_ap_centers, cluster_centers_)
         np.save(self.media_ap_labels, labels_)
+        np.save(self.media_ap_indices, cluster_centers_indices)
         return cluster_centers_, labels_, cluster_centers_indices
 
     def run_Ap_songList_algrothm(self):
@@ -173,7 +177,7 @@ class UserLabelAP:
         self.logger.log().info("ap finished!!!")
         np.save(self.mediaList_ap_centers, cluster_centers_)
         np.save(self.mediaList_ap_labels, labels_)
-
+        np.save(self.mediaList_ap_indices, cluster_centers_indices)
         # """
         # 绘制散点图观察聚类效果
         # """
@@ -195,12 +199,13 @@ class UserLabelAP:
         # plt.xticks(fontsize=10, color="darkorange")
         # plt.yticks(fontsize=10, color="darkorange")
         # plt.show()
-        return cluster_centers_, cluster_centers_indices, labels_
+        return cluster_centers_, labels_, cluster_centers_indices
 
 
 if __name__ == "__main__":
     prop = ReadProperties("data/app.properties")
-    userTagAp = UserLabelAP(prop.get("media_ap_centers"), prop.get("media_ap_labels"),
-                            prop.get("media_list_ap_centers"), prop.get("media_list_ap_labels"))
+    userTagAp = UserLabelAP(prop.get("media_ap_centers"), prop.get("media_ap_labels"), prop.get("media_ap_indices"),
+                            prop.get("media_list_ap_centers"), prop.get("media_list_ap_labels"),
+                            prop.get("media_list_ap_indices"))
     userTagAp.run_Ap_songList_algrothm()
     userTagAp.run_Ap_single_algrothm()

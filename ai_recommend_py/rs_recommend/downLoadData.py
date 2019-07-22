@@ -143,6 +143,9 @@ class DownLoadData:
         # all mediaId common_tag
         self.file_down(local_path=prop.get("mediaId_common_tag_path"),
                        hdfs_path=prop.get("fs_mediaId_common_tag_path"))
+        # one month media play score data
+        self.file_down(local_path=prop.get("media_play_score_one_month_path"),
+                       hdfs_path=prop.get("fs_media_play_score_one_month_path") + date_path)
 
 
 if __name__ == '__main__':
