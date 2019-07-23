@@ -8,6 +8,8 @@ import os
 from operator import itemgetter
 
 from collections import defaultdict
+from rs_recommend.dbUtil import BaseDao
+import datetime
 
 random.seed(0)
 
@@ -27,6 +29,8 @@ class UserBasedCF(object):
         self.user_sim_mat = {}
         self.media_popular = {}
         self.media_count = 0
+
+        self.all_rec_media = {}
 
         print('Similar user number = %d' % self.n_sim_user, file=sys.stderr)
         print('recommended media number = %d' %
@@ -127,7 +131,7 @@ class UserBasedCF(object):
         watched_movies = self.trainset[user]
 
         for similar_user, similarity_factor in sorted(self.user_sim_mat[user].items(),
-                                                      key=itemgetter(1), reverse=True):
+                                                      key=itemgetter(1), reverse=True)[0:K]:
             for media in self.trainset[similar_user]:
                 if media in watched_movies:
                     continue
@@ -135,7 +139,7 @@ class UserBasedCF(object):
                 rank.setdefault(media, 0)
                 rank[media] += similarity_factor
         # return the N best movies
-        return sorted(rank.items(), key=itemgetter(1), reverse=True)
+        return sorted(rank.items(), key=itemgetter(1), reverse=True)[0:N]
 
     def evaluate(self):
         ''' print evaluation result: precision, recall, coverage and popularity '''
@@ -159,6 +163,9 @@ class UserBasedCF(object):
             for media, _ in rec_media:
                 if media in test_media:
                     hit += 1
+                # 所有的推荐结果
+                self.all_rec_media.setdefault(user, {})
+                self.all_rec_media[user][media] = float(_)
                 all_rec_medias.add(media)
                 popular_sum += math.log(1 + self.media_popular[media])
             rec_count += N
@@ -172,14 +179,42 @@ class UserBasedCF(object):
         print('precision=%.4f\trecall=%.4f\tcoverage=%.4f\tpopularity=%.4f' %
               (precision, recall, coverage, popularity), file=sys.stderr)
 
+    def saveData(self):
+        CONFIG = {
+            "user": "root",
+            "password": "Topdraw1qaz",
+            "database": "ai_recommend",
+            "table": "x_cf_user_recommend"
+        }
+        # 初始化指定的table
+        baseDao = BaseDao(**CONFIG)
+
+        # 清空数据库
+        baseDao.truncate()
+
+        # 插入数据库
+        item = []
+        for i, user in enumerate(self.all_rec_media):
+            for media in self.all_rec_media[user]:
+                temp_dict = {
+                    'id': None,
+                    'user_id': str(user),
+                    'media_id': str(media),
+                    'score': float(self.all_rec_media[user][media]),
+                    'create_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    'update_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                }
+                item.append(temp_dict)
+        baseDao.batch_save(obj=item)
+
 
 if __name__ == '__main__':
-    # ratingfile(userId movieId,rating,timestamp)
     ratingfile = os.path.join('data/input', 'media_play_one_month_score_data.csv')
     usercf = UserBasedCF()
     usercf.generate_dataset(ratingfile)
     usercf.calc_user_sim()
-    # usercf.evaluate()
-    user = "173955"
-    print("推荐结果", usercf.recommend(user))
-    print("---", usercf.testset.get(user, {}))
+    usercf.evaluate()
+    usercf.saveData()
+    # user = "173955"
+    # print("推荐结果", usercf.recommend(user))
+    # print("---", usercf.testset.get(user, {}))

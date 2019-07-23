@@ -1,38 +1,42 @@
-#!/x/install/PREFIX=/x/app/anaconda3/bin/python
-# -*- coding:utf-8 -*-
-__author__ = 'wangliang'
+#!/usr/bin/env python3
+# -*- coding=utf-8 -*-
+
+'''
+基于 DBUtils 和 pymysql 结合的简便操作数据库的类.
+'''
+__author__ = "阮程"
+
 import logging
 import time
 
 import pymysql
 from DBUtils import PooledDB
-from rs_recommend.queryUtil import QueryUtil
+from rs_recommend.readProperties import ReadProperties
 
 logging.basicConfig(
     level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S',
     format='%(asctime)s [%(levelname)s] %(message)s'
 )
+prop = ReadProperties("data/app.properties")
 
 
 def get_time(fmt=None):
-    """
+    '''
     获取当前时间
-    :param fmt:时间格式化字符串
-    :return:
-    """
+    - @param: fmt 时间格式化字符串
+    '''
     fmt = fmt or "%Y-%m-%d %H:%M:%S"
     return time.strftime(fmt, time.localtime())
 
 
 def stitch_sequence(seq=None, is_field=True, suf=None):
-    """
-    序列拼接用于将序列拼接成字符串
-    :param seq: 拼接序列
-    :param is_field: 是否为数据库字段序列
-    :param suf: 拼接后缀（默认使用','）
-    :return:
-    """
+    '''
+    序列拼接方法, 用于将序列拼接成字符串
+    - :seq: 拼接序列
+    - :suf: 拼接后缀(默认使用 ",")
+    - :is_field: 是否为数据库字段序列
+    '''
     if seq is None:
         raise Exception("Parameter seq is None")
     suf = suf or ","
@@ -43,32 +47,29 @@ def stitch_sequence(seq=None, is_field=True, suf=None):
 
 
 def escape_quotes(val):
-    """
-    转换单引号和双引号
-    :param val:
-    :return:
-    """
+    '转换单引号和双引号'
     if type(val) == str:
         return val.replace("'", "\\\'")
     return val
 
 
-class BaseUtil(object):
+class BaseDao(object):
     """
-    简单的数据库操作基类
-    初始化参数如下:
-    - creator:创建连接对象（默认pymysql）
-    - host:连接数据库的ip地址（默认localhost）
-    - port：连接数据库端口（默认为3306）
-    - user：连接数据库的用户名（默认None）,如果为空会抛异常
-    - password：连接数据库的密码（默认为None）,如果为空会抛异常
+    简便的数据库操作基类，该类所操作的表必须有主键
+    初始化参数如下：
+    - :creator: 创建连接对象（默认: pymysql）
+    - :host: 连接数据库主机地址(默认: localhost)
+    - :port: 连接数据库端口(默认: 3306)
+    - :user: 连接数据库用户名(默认: None), 如果为空，则会抛异常
+    - :password: 连接数据库密码(默认: None), 如果为空，则会抛异常
     - :database: 连接数据库(默认: None), 如果为空，则会抛异常
-    - :charset: 编码(默认: utf8)
-    - :table: 初始化 BaseUtil 对象的数据库表名(默认: None), 如果为空，
+    - :chatset: 编码(默认: utf8)
+    - :table: 初始化 BaseDao 对象的数据库表名(默认: None), 如果为空，
     则会初始化该数据库下所有表的信息, 如果不为空，则只初始化传入的 table 的表
     """
 
-    def __init__(self, creator=pymysql, host="localhost", port=3306, user=None, password=None,
+    def __init__(self, creator=pymysql, host=prop.get("db_host"), port=int(prop.get("db_port")), user=None,
+                 password=None,
                  database=None, charset="utf8", table=None):
         if host is None:
             raise ValueError("Parameter [host] is None.")
@@ -94,10 +95,7 @@ class BaseUtil(object):
         logging.info("[{0}] 数据库初始化成功。耗时：{1} ms。".format(database, (end - start)))
 
     def __del__(self):
-        """
-        重写类被清除时调用的方法
-        :return:
-        """
+        '重写类被清除时调用的方法'
         if self._cursor:
             self._cursor.close()
         if self._conn:
@@ -105,10 +103,7 @@ class BaseUtil(object):
         logging.debug("[{0}] 连接关闭。".format(self._database))
 
     def _init_connect(self):
-        """
-        初始化连接对象
-        :return:
-        """
+        '初始化连接'
         try:
             self._conn = PooledDB.connect(**self._config)
             self._cursor = self._conn.cursor()
@@ -116,10 +111,7 @@ class BaseUtil(object):
             logging.error(e)
 
     def _init_params(self):
-        """
-        初始化参数
-        :return:
-        """
+        '初始化参数'
         self._table_dict = {}
         self._information_schema_columns = []
         self._table_column_dict_list = {}
@@ -132,24 +124,17 @@ class BaseUtil(object):
             self._column_list = self._table_column_dict_list[self._table]
 
     def _init_information_schema_columns(self):
-        """
-        查询 information_schema.`COLUMNS`中的列
-        :return:
-        """
+        "查询 information_schema.`COLUMNS` 中的列"
         sql = """   SELECT COLUMN_NAME
                     FROM information_schema.`COLUMNS`
                     WHERE TABLE_SCHEMA='information_schema' AND TABLE_NAME='COLUMNS'
                 """
-        result_tuple = self.execute(sql)
+        result_tuple = self.execute_query(sql)
         column_list = [r[0] for r in result_tuple]
         self._information_schema_columns = column_list
 
     def _init_table_dict(self, table_name):
-        """
-        初始化表
-        :param table_name:
-        :return:
-        """
+        '初始化表'
         if not self._information_schema_columns:
             self._init_information_schema_columns()
         stitch_str = stitch_sequence(self._information_schema_columns)
@@ -341,6 +326,42 @@ class BaseUtil(object):
             self._table, stitch_str, stitch_value_str)
         return self.execute_update(sql)
 
+    def batch_save(self, table_name=None, obj=None):
+        """
+        批量插入
+        :param table_name: 表名
+        :param obj: 数据格式[{},{},{}……,{}]
+        :return:
+        """
+        self._check_table_name(table_name)
+        if obj is None:
+            obj = {}
+        primary_key = self._get_primary_key(self._table)
+        suf_sql = 'INSERT INTO `%s` (%s) VALUE ' % (self._table, stitch_sequence(obj[0].keys()))
+        temp_sql = ""
+        for i in range(len(obj)):
+            if primary_key not in obj[i].keys():
+                obj[i][primary_key] = None
+            value_list = []
+            for key, value in obj[i].items():
+                if self._table_dict[self._table][key]["COLUMN_KEY"] != "PKI":
+                    value = "null" if value is None else '"%s"' % value
+                value_list.append(escape_quotes(value))
+            stitch_value_str = stitch_sequence(value_list, False)
+            temp_sql += '(%s),' % stitch_value_str
+        suf_sql += temp_sql
+        return self.execute_update(sql=suf_sql.rstrip(","))
+
+    def truncate(self, table_name=None):
+        """
+        删除表数据
+        :param table_name:
+        :return:
+        """
+        self._check_table_name(table_name)
+        sql = 'TRUNCATE %s' % self._table
+        return self.execute_query(sql=sql)
+
     def update_by_primarykey(self, table_name=None, obj=None):
         '''更新方法(根据主键更新，包含空值)
         - @param table_name 表名
@@ -411,9 +432,7 @@ class BaseUtil(object):
 
 
 class Page(object):
-    """
-    分页对象
-    """
+    '分页对象'
 
     def __init__(self, page_num=1, page_size=10, count=False):
         '''
@@ -440,9 +459,11 @@ class QueryUtil(object):
     '''
     SQL 语句拼接工具类：
     - 主方法: querySql(sql, filters)
+
     参数说明:
     - @param sql：需要拼接的 SQL 语句
     - @param filters：拼接 SQL 的过滤条件
+
     filters 过滤条件说明：
     - 支持拼接条件如下：
     - 1、等于（如：{"id": 2}, 拼接后为：id=2)
@@ -575,7 +596,7 @@ def _test1():
         "table": "province"
     }
     # 指定初始化 table
-    test_dao = BaseUtil(**CONFIG)
+    test_dao = BaseDao(**CONFIG)
 
     # 查询单条记录
     # one = test_dao.select_one()
@@ -601,7 +622,7 @@ def _test2():
         "database": "test"
     }
     # 初始化所有 table
-    test_dao = BaseUtil(**CONFIG)
+    test_dao = BaseDao(**CONFIG)
 
     # one1 = test_dao.select_one("province")
     # print(one1)
@@ -628,16 +649,16 @@ def _test2():
 def _test3():
     CONFIG = {
         "user": "root",
-        "password": "root",
-        "database": "test",
+        "password": "Topdraw1qaz",
+        "database": "ai_recommend",
         "table": "province"
     }
     # 初始化所有 table
-    test_dao = BaseUtil(**CONFIG)
+    test_dao = BaseDao(**CONFIG)
     province = {
         "id": None,
         "province_id": "990000",
-        "province": "测试"
+        "province": "测试1"
     }
     test_dao.save(obj=province)
 
@@ -657,12 +678,6 @@ def _test3():
     # }
     # item = test_dao.select_one(filters=f2)
     # test_dao.remove_by_primarykey(value=item["id"])
-
-
-class Page(object):
-    def __init__(self, page, nums):
-        self._page = page
-        self._nums = nums
 
 
 if __name__ == '__main__':
