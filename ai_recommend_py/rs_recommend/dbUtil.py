@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding=utf-8 -*-
+#!/x/install/PREFIX=/x/app/anaconda3/bin/python
+# -*- coding:utf-8 -*-
 
-'''
-基于 DBUtils 和 pymysql 结合的简便操作数据库的类.
-'''
-__author__ = "阮程"
+"""
+基于 DBUtils 和 py 结合的简便操作数据库的类.
+"""
+__author__ = "wanglang"
 
 import logging
 import time
@@ -281,7 +281,7 @@ class BaseDao(object):
     def count(self, table_name=None):
         '''统计记录数'''
         self._check_table_name(table_name)
-        sql = "SELECT count(*) FROM %s" % (self._table)
+        sql = "SELECT count(*) FROM %s" % self._table
         result = self.execute_query(sql, True)
         return result[0]
 
@@ -683,4 +683,5 @@ def _test3():
 if __name__ == '__main__':
     # _test1()
     # _test2()
-    _test3()
+    # _test3()
+    pass
