@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 import scala.util.control.Breaks._
 
 /**
-  * 计算用户有效播放时长得分
+  * 计算用户的有效时长
   */
 object Cal_Media_Play_Score {
 
@@ -159,10 +159,10 @@ object Cal_Media_Play_Score {
 
 
   /**
-    * 计算播放得分
     *
     * @param playDur
     * @param preDuration
+    * @param playCount
     * @return
     */
   def calculateScore(playDur: Int, preDuration: Int, playCount: Int): Double = {
