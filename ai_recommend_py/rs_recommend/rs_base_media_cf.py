@@ -2,10 +2,10 @@
 __author__ = 'wangliang'
 import os
 import numpy as np
-from rs_recommend.readProperties import ReadProperties
-from rs_recommend.loggingUtil import LoggingUtil
+from ai_recommend_py.rs_recommend.readProperties import ReadProperties
+from ai_recommend_py.rs_recommend.loggingUtil import LoggingUtil
 import math
-from rs_recommend.similarity_matrix import Similarity_Matrix
+from ai_recommend_py.rs_recommend.similarity_matrix import Similarity_Matrix
 import pymysql
 import datetime
 

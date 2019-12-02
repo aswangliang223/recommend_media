@@ -18,7 +18,7 @@ class ReadProperties:
                     self.properties[strs[0].strip()] = strs[1].strip()
         except Exception as e:
             raise e
-        else:
+        finally:
             fopen.close()
 
     def has_key(self, key):

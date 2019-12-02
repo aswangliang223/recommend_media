@@ -8,7 +8,7 @@ import os
 from operator import itemgetter
 
 from collections import defaultdict
-from rs_recommend.dbUtil import BaseDao
+from ai_recommend_py.rs_recommend.dbUtil import BaseDao
 import datetime
 
 random.seed(0)

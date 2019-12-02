@@ -1,11 +1,11 @@
 # -*- coding:utf-8 -*-
 __author__ = 'wangliang'
-import pyhdfs
+import hdfs as pyhdfs
 import os
 import datetime
 from datetime import datetime
-from rs_recommend.loggingUtil import LoggingUtil
-from rs_recommend.readProperties import ReadProperties
+from ai_recommend_py.rs_recommend.loggingUtil import LoggingUtil
+from ai_recommend_py.rs_recommend.readProperties import ReadProperties
 import sys
 
 

@@ -11,7 +11,7 @@ import time
 
 import pymysql
 from DBUtils import PooledDB
-from rs_recommend.readProperties import ReadProperties
+from ai_recommend_py.rs_recommend.readProperties import ReadProperties
 
 logging.basicConfig(
     level=logging.INFO,
@@ -186,6 +186,7 @@ class BaseDao(object):
             raise Exception(table_name, "is not exist.")
         for column, column_dict in self._table_dict[table_name].items():
             if column_dict["COLUMN_KEY"] == "PRI":
+
                 return column
 
     def _get_table_column_list(self, table_name=None):
@@ -224,6 +225,7 @@ class BaseDao(object):
         '''
         try:
             if sql is None:
+                raise Exception("Parameters sql is None")
                 raise Exception("Parameter sql is None.")
             logging.info("[%s] SQL >>> [%s]" % (self._database, sql))
             result = self._cursor.execute(sql)
@@ -249,7 +251,7 @@ class BaseDao(object):
         result = self.execute_query(sql, True)
         return self._parse_result(result)
 
-    def select_pk(self, table_name=None, primary_key=None):
+    def wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww(self, table_name=None, primary_key=None):
         '''按主键查询
         - @table_name 表名
         - @primary_key 主键值
@@ -272,7 +274,7 @@ class BaseDao(object):
         if filters is None:
             filters = {}
         stitch_str = stitch_sequence(
-            self._get_table_column_list(self._table))
+      self._get_table_column_list(self._table))
         sql = "SELECT %s FROM %s" % (stitch_str, self._table)
         sql = QueryUtil.query_sql(sql, filters)
         results = self.execute_query(sql)

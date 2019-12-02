@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 __author__ = 'wangliang'
-from rs_recommend.loggingUtil import LoggingUtil
-from rs_recommend.readProperties import ReadProperties
+from ai_recommend_py.rs_recommend.loggingUtil import LoggingUtil
+from ai_recommend_py.rs_recommend.readProperties import ReadProperties
 import numpy as np
 from sklearn.cluster import KMeans, AffinityPropagation
 import os

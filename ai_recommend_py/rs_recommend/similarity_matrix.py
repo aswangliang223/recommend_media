@@ -3,8 +3,8 @@ __author__ = 'wangliang'
 import math
 import numpy as np
 import os
-from rs_recommend.loggingUtil import LoggingUtil
-from rs_recommend.readProperties import ReadProperties
+from ai_recommend_py.rs_recommend.loggingUtil import LoggingUtil
+from ai_recommend_py.rs_recommend.readProperties import ReadProperties
 
 
 class Similarity_Matrix:

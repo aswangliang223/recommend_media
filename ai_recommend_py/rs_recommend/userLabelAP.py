@@ -4,8 +4,8 @@ import numpy as np
 from sklearn.cluster import AffinityPropagation
 import os
 import time
-from rs_recommend.loggingUtil import LoggingUtil
-from rs_recommend.readProperties import ReadProperties
+from ai_recommend_py.rs_recommend.loggingUtil import LoggingUtil
+from ai_recommend_py.rs_recommend.readProperties import ReadProperties
 
 
 class UserLabelAP:
